@@ -25,16 +25,14 @@ public class PersonService {
         this.personRepository = personRepository;
     }
 
+    //Prática de clean code: métodos públicos primeiro e privados por últim
     public MessageResponseDTO createPerson(PersonDTO personDTO) {
-        //converte o dto em uma unica entidade mapeada convertendo
-        //todos o atributos para o formato do banco ex. String -> LocalDate
+        // Converte o dto em uma unica entidade mapeada convertendo
+        // todos o atributos para o formato do banco ex. String -> LocalDate
         Person personToSave = personMapper.toModel(personDTO);
 
         Person savedPerson = personRepository.save(personToSave);
-        return MessageResponseDTO
-                .builder()
-                .message("Created person with ID " + savedPerson.getId())
-                .build();
+        return createMessageResponse(savedPerson.getId(), "Created person with ID ");
     }
 
     public List<PersonDTO> listAll() {
@@ -51,14 +49,30 @@ public class PersonService {
         return personMapper.toDTO(person);
     }
 
-    public Person verifyIfExists(Long id) throws PersonNotFoundException {
-        return personRepository.findById(id)
-                .orElseThrow(() -> new PersonNotFoundException(id));
-    }
-
     public void delete(Long id) throws PersonNotFoundException {
         verifyIfExists(id);
 
         personRepository.deleteById(id);
+    }
+
+    public MessageResponseDTO updateById(Long id, PersonDTO personDTO) throws PersonNotFoundException {
+        verifyIfExists(id);
+
+        Person personToUpdate = personMapper.toModel(personDTO);
+
+        Person updatedPerson = personRepository.save(personToUpdate);
+        return createMessageResponse(updatedPerson.getId(), "Updated person with ID ");
+    }
+
+    private Person verifyIfExists(Long id) throws PersonNotFoundException {
+        return personRepository.findById(id)
+                .orElseThrow(() -> new PersonNotFoundException(id));
+    }
+
+    private MessageResponseDTO createMessageResponse(Long id, String message) {
+        return MessageResponseDTO
+                .builder()
+                .message(message + id)
+                .build();
     }
 }
